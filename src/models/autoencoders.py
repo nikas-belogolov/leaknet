@@ -1,10 +1,30 @@
 import torch
 from torch import nn
 from abc import ABC
+from config import *
+from models.model import Model
 
-criterion = nn.MSELoss()
+class Autoencoder(Model, ABC):
+  _criterion = nn.MSELoss()
 
-
+  def __init__(self):
+    super().__init__()
+  
+  def training_step(self, batch) -> torch.Tensor:
+    x, _ = batch
+    x_reconstructed = self.forward(x)
+    loss = self._criterion(x_reconstructed, x)
+    return loss
+  
+  def validation_step(self, batch) -> torch.Tensor:
+    x, _ = batch
+    x_reconstructed = self.forward(x)
+    val_loss = self._criterion(x_reconstructed, x)
+    return val_loss
+  
+  def configure_optimizers(self):
+    self.optimizer = torch.optim.Adam(self.parameters(), lr=LEARNING_RATE)
+    self.lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(self.optimizer)
 
 class SimpleAutoencoder(nn.Module):
   """

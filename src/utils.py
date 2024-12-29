@@ -35,8 +35,8 @@ def set_seed(seed=42):
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(seed)
        
-def save_model(model: torch.nn.Module, path: str):
-    torch.save(model, path)
+def save_checkpoint(obj: object, name: str):
+    torch.save(obj, name + ".pth")
     
 def load_model(path: str) -> torch.nn.Module:
     return torch.load(path, weights_only=False)

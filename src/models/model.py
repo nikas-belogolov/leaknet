@@ -1,5 +1,5 @@
 import torch
-from abc import ABC, abstractmethod, abstractproperty
+from abc import ABC, abstractmethod
 
 
 
@@ -10,6 +10,18 @@ class Model(torch.nn.Module, ABC):
         self._criterion = None
         self._optimizer = None
         self._scheduler = None
+        
+    @abstractmethod
+    def training_step(self, batch) -> torch.Tensor:
+        pass
+    
+    @abstractmethod
+    def validation_step(self, batch) -> torch.Tensor:
+        pass
+    
+    @abstractmethod
+    def configure_optimizers(self):
+        pass
         
     @abstractmethod
     def forward(self, x):
@@ -35,9 +47,9 @@ class Model(torch.nn.Module, ABC):
 
     # Scheduler
     @property
-    def scheduler(self):
-        return self._scheduler
+    def lr_scheduler(self):
+        return self._lr_scheduler
     
-    @scheduler.setter
-    def scheduler(self, scheduler):
-        self._scheduler = scheduler
+    @lr_scheduler.setter
+    def lr_scheduler(self, lr_scheduler):
+        self._lr_scheduler = lr_scheduler
