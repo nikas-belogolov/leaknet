@@ -2,13 +2,13 @@ import torch
 from torch import nn
 from abc import ABC
 from config import *
-from models.model import Model
+from models.model import BaseModel
 
-class Autoencoder(Model, ABC):
-  _criterion = nn.MSELoss()
+class AutoencoderModel(BaseModel, ABC):
 
   def __init__(self):
     super().__init__()
+    self._criterion = nn.MSELoss()
   
   def training_step(self, batch) -> torch.Tensor:
     x, _ = batch
@@ -26,15 +26,13 @@ class Autoencoder(Model, ABC):
     self.optimizer = torch.optim.Adam(self.parameters(), lr=LEARNING_RATE)
     self.lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(self.optimizer)
 
-class SimpleAutoencoder(nn.Module):
-  """
-  SimpleAutoencoder: Final hidden state of the encoder is repeated and fed as input to the decoder.
-  """
 
+class HiddenStateRepeatedAutoencoder(AutoencoderModel):
+  """
+  HiddenStateRepeatedAutoencoder: Final hidden state of the encoder is repeated and fed as input to the decoder.
+  """
   def __init__(self, input_dim, hidden_dim, num_layers=1, dropout=0):
-    super(SimpleAutoencoder, self).__init__()
-    self.input_dim = input_dim    
-    self.hidden_dim = hidden_dim
+    super().__init__()
     
     self.encoder = nn.GRU(input_dim, hidden_dim, num_layers, batch_first=True, dropout=dropout)    
     self.decoder = nn.GRU(hidden_dim, input_dim, num_layers, batch_first=True, dropout=dropout)
@@ -43,26 +41,23 @@ class SimpleAutoencoder(nn.Module):
     seq_len = x.size(dim=1)
     
     _, h = self.encoder(x)
-    
     h_repeated = h.repeat(seq_len, 1, 1).permute(1, 0, 2)
-    
     reconstructed, _ = self.decoder(h_repeated)
-
+    
     return reconstructed
 
-class ScheduledSamplingAutoencoder(nn.Module):
+class ScheduledSamplingAutoencoder(AutoencoderModel):
   """
-  ScheduledSamplingAutoencoder: Decoder is either fed the previous true token or generated token. 
+  ScheduledSamplingAutoencoder: Decoder starts with encoder hidden state, and is either fed the previous true token or generated token. 
   """
-  
   def __init__(self, input_dim, hidden_dim, num_layers=1, dropout=0):
-    super(ScheduledSamplingAutoencoder, self).__init__()
+    super().__init__()
     
     self.input_dim = input_dim
     self.hidden_dim = hidden_dim
     
-    self.encoder = nn.GRU(input_dim, hidden_dim, batch_first=True)
-    self.decoder = nn.GRU(input_dim, hidden_dim, batch_first=True)
+    self.encoder = nn.GRU(input_dim, hidden_dim, batch_first=True, num_layers=num_layers, dropout=dropout)
+    self.decoder = nn.GRU(input_dim, hidden_dim, batch_first=True, num_layers=num_layers, dropout=dropout)
     self.output_layer = nn.Linear(hidden_dim, input_dim)
     
     # Layer normalization for both encoder and decoder
@@ -92,40 +87,41 @@ class ScheduledSamplingAutoencoder(nn.Module):
       
     return torch.cat(outputs, dim=1)
 
+class CNNRNNAutoencoder(AutoencoderModel):
+  pass
 
+# class RNNAutoencoder(nn.Module):
+#     def __init__(self, input_dim, hidden_dim, rnn_unit=nn.GRU, num_layers=1):
+#       super(RNNAutoencoder, self).__init__()
 
-class RNNAutoencoder(nn.Module):
-    def __init__(self, input_dim, hidden_dim, rnn_unit=nn.GRU, num_layers=1):
-      super(RNNAutoencoder, self).__init__()
+#       self.input_dim = input_dim
+#       self.hidden_dim = hidden_dim
 
-      self.input_dim = input_dim
-      self.hidden_dim = hidden_dim
-
-      self.encoder = rnn_unit(input_dim, hidden_dim, batch_first=True)
+#       self.encoder = rnn_unit(input_dim, hidden_dim, batch_first=True)
       
       
       
-      self.decoder = rnn_unit(hidden_dim, input_dim, batch_first=True)
-      # self.fc = nn.Linear(hidden_dim, output_dim)
+#       self.decoder = rnn_unit(hidden_dim, input_dim, batch_first=True)
+#       # self.fc = nn.Linear(hidden_dim, output_dim)
 
-    def forward(self, x, teacher_forcing_ratio=0.5):
-      batch_size, seq_len, input_dim = x.size()
-      _, hidden = self.encoder(x)
+#     def forward(self, x, teacher_forcing_ratio=0.5):
+#       batch_size, seq_len, input_dim = x.size()
+#       _, hidden = self.encoder(x)
 
-      decoder_input = x[:, 0, :].unsqueeze(1)
-      outputs = torch.zeros(batch_size, seq_len, self.input_dim)
+#       decoder_input = x[:, 0, :].unsqueeze(1)
+#       outputs = torch.zeros(batch_size, seq_len, self.input_dim)
 
-      for t in range(seq_len):
-        print(decoder_input.shape, hidden.shape)
-        output, hidden = self.decoder(decoder_input, hidden)
+#       for t in range(seq_len):
+#         print(decoder_input.shape, hidden.shape)
+#         output, hidden = self.decoder(decoder_input, hidden)
 
-        print(output.shape, outputs.shape)
+#         print(output.shape, outputs.shape)
 
-        outputs[:, t, :] = output.squeeze(1)
+#         outputs[:, t, :] = output.squeeze(1)
 
-        if torch.rand(1).item() < teacher_forcing_ratio:
-          decoder_input = x[:, t, :].unsqueeze(1)
-        else:
-          decoder_input = output
+#         if torch.rand(1).item() < teacher_forcing_ratio:
+#           decoder_input = x[:, t, :].unsqueeze(1)
+#         else:
+#           decoder_input = output
 
-      return outputs
+#       return outputs

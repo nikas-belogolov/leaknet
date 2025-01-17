@@ -24,11 +24,12 @@ def plot_samples(dir: str):
     for ax, file in zip(axes[0], normal_data):
         df = pd.read_csv(os.path.join(normal_data_dir, file))
         ax.plot(df[["flow", "pressure"]])
+        ax.set_title(file)
         
     for ax, file in zip(axes[1], anomalous_data):
         df = pd.read_csv(os.path.join(anomalous_data_dir, file))
         ax.plot(df[["flow", "pressure"]])
-        
+        ax.set_title(file)
 
     # Adjust layout
     fig.tight_layout(rect=[0, 0, 1, 0.95])

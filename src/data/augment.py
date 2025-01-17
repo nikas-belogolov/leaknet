@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 
 import tsgm.models.augmentations
 
-def augment_data(num_augmented=5, variance=0.02):
+def augment_data(num_augmented=5, variance=0.01):
     """Add augmentation to raw data.
     
     Args:
@@ -21,6 +21,8 @@ def augment_data(num_augmented=5, variance=0.02):
             dest = os.path.join(ROOT_DIR, DATA_AUGMENTED_DIR, os.path.basename(root))
         
             raw_data = pd.read_csv(src)
+            
+            raw_data.to_csv(os.path.join(dest, file), index=False)
 
             augmented = raw_data.copy()
             

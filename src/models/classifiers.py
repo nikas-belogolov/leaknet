@@ -3,14 +3,13 @@ from torch import nn
 from abc import ABC
 from config import *
 
-from models.model import Model
+from models.model import BaseModel
 
-class Classifier(Model, ABC):
+class ClassifierModel(BaseModel, ABC):
   
-  _criterion = nn.BCELoss()
-
   def __init__(self):
     super().__init__()
+    self._criterion = nn.BCELoss()
   
   def training_step(self, batch) -> torch.Tensor:
     x, y = batch
@@ -27,18 +26,19 @@ class Classifier(Model, ABC):
   def configure_optimizers(self):
     self.optimizer = torch.optim.Adam(self.parameters(), lr=LEARNING_RATE)
     self.lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(self.optimizer)
-  
-class RNNClassfier(Classifier):
-    def __init__(self, input_dim, hidden_dim, rnn_unit=nn.GRU, num_layers=1, dropout=0):
+
+
+class RNNClassfier(ClassifierModel):
+    def __init__(self, input_dim, hidden_dim, num_layers=1, dropout=0):
       super().__init__()
       
-      self.rnn = rnn_unit(input_dim, hidden_dim, batch_first=True, dropout=dropout, num_layers=num_layers)
+      self.rnn = nn.GRU(input_dim, hidden_dim, batch_first=True, dropout=dropout, num_layers=num_layers)
+      
       self.fc = nn.Linear(hidden_dim, 1)
+      nn.init.xavier_uniform_(self.fc.weight)
+      
       self.dropout = nn.Dropout(dropout)
       self.sigmoid = nn.Sigmoid()
-      nn.init.xavier_uniform_(self.fc.weight)
-      nn.init.zeros_(self.fc.bias)
-      
 
     def forward(self, x) -> torch.Tensor:
       _, output = self.rnn(x)
@@ -46,31 +46,25 @@ class RNNClassfier(Classifier):
       output = self.sigmoid(output)
       return output.squeeze()
     
-    
-    
-class CNNRNNClassifier(Classifier):
-  def __init__(self, input_dim, hidden_dim, rnn_unit=nn.GRU, num_layers=1, dropout=0):
-    super(CNNRNNClassifier, self).__init__()
+class CNNRNNClassifier(RNNClassfier):
+  """
+  CNNRNNClassifier: extract features before passing to rnn
+  """
+  
+  def __init__(self, input_dim, hidden_dim, cnn_filters=1, num_layers=1, dropout=0):
+    super().__init__(cnn_filters, hidden_dim, num_layers, dropout)
     
     # CNN 1d feature extractor
-    self.conv = nn.Conv1d(input_dim, input_dim, kernel_size=3)
-    self.relu = nn.ReLU()
-    nn.init.kaiming_normal_(self.conv.weight)
+    self.conv = nn.Sequential(
+      nn.Conv1d(input_dim, cnn_filters, kernel_size=3, padding=1),
+      nn.ReLU(),
+      nn.MaxPool1d(2, 2)
+    )
     
-    # RNN 
-    self.rnn = rnn_unit(input_dim, hidden_dim, batch_first=True, dropout=dropout, num_layers=num_layers)
-    
-    
-    self.fc = nn.Linear(hidden_dim, 1)
-    nn.init.xavier_uniform_(self.fc.weight)
-    self.dropout = nn.Dropout(dropout)
-    self.sigmoid = nn.Sigmoid()
-     
   def forward(self, x) -> torch.Tensor:
     
-    output = self.relu(self.conv(x))
+    x = x.permute(0, 2, 1)
+    x = self.conv(x)
+    x = x.permute(0, 2, 1)
     
-    _, output = self.rnn(output)
-    output = self.dropout(self.fc(output[0]))
-    output = self.sigmoid(output)
-    return output
+    return super().forward(x)
