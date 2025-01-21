@@ -1,10 +1,7 @@
 import os
 import pandas as pd
 from config import DATA_RAW_DIR, DATA_AUGMENTED_DIR, ROOT_DIR
-import torch
 import numpy as np
-import matplotlib.pyplot as plt
-
 import tsgm.models.augmentations
 
 def augment_data(num_augmented=5, variance=0.01):

@@ -3,6 +3,9 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from config import *
 
+def visualize_regression():
+    pass
+
 def plot_samples(dir: str):
     fig, axes = plt.subplots(2, 3, figsize=(15, 7))
 

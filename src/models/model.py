@@ -63,7 +63,7 @@ class BaseModel(torch.nn.Module, ABC):
     @optimizer.setter
     def optimizer(self, optimizer: torch.optim.Optimizer):
         self._optimizer = optimizer
-        self._hparams["learning_rate"] = optimizer.param_groups[0]['lr']
+        # self._hparams["learning_rate"] = optimizer.param_groups[0]['lr']
 
     # Scheduler
     @property
