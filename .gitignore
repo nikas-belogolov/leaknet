@@ -1,3 +1,7 @@
 **/project.egg-info
 **/__pycache__
 .env
+logs
+
+models/checkpoints
+deployment

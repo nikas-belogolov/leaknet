@@ -4,13 +4,18 @@ from config import DATA_RAW_DIR, DATA_AUGMENTED_DIR, ROOT_DIR
 import numpy as np
 import tsgm.models.augmentations
 
-def augment_data(num_augmented=5, variance=0.01):
+def augment_data(num_augmented, variance):
     """Add augmentation to raw data.
     
     Args:
         num_augmented: The number of new augmented data segments for each raw data segment
     """
     jitter_aug_model = tsgm.models.augmentations.GaussianNoise()
+    
+    augment_data_dir = os.path.join(ROOT_DIR, DATA_AUGMENTED_DIR)
+    for root, _, files  in os.walk(augment_data_dir):
+        for file in files:
+            os.remove(os.path.join(root, file))
     
     for root, _, files  in os.walk(os.path.join(ROOT_DIR, DATA_RAW_DIR)):
         for file in files:
