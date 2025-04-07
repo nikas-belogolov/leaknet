@@ -96,9 +96,9 @@ def get_datasets(dataset):
 def get_dataloader(dataset, shuffle, collate_fn):
     return DataLoader(dataset, BATCH_SIZE, shuffle=shuffle, collate_fn=collate_fn)
 
-def get_dataloaders(train_set, val_set, test_set, collate_fn):
-    train_loader = DataLoader(train_set, BATCH_SIZE, shuffle=True, collate_fn=collate_fn)
-    val_loader = DataLoader(val_set, BATCH_SIZE, shuffle=False, collate_fn=collate_fn)
-    test_loader = DataLoader(test_set, BATCH_SIZE, shuffle=False, collate_fn=collate_fn)
+def get_dataloaders(train_set, val_set, test_set, collate_fn, batch_size=BATCH_SIZE):
+    train_loader = DataLoader(train_set, batch_size, shuffle=True, collate_fn=collate_fn)
+    val_loader = DataLoader(val_set, batch_size, shuffle=False, collate_fn=collate_fn)
+    test_loader = DataLoader(test_set, batch_size, shuffle=False, collate_fn=collate_fn)
     
     return train_loader, val_loader, test_loader

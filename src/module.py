@@ -14,6 +14,8 @@ class BaseModule(nn.Module, ABC):
     optimizers = None
     lr_schedulers = None
     
+    _trainer = None
+    
     def __init__(self):
         super().__init__()
 
@@ -29,7 +31,7 @@ class BaseModule(nn.Module, ABC):
         return self.training_step(batch, batch_idx)
     
     def test_step(self, batch, batch_idx) -> torch.Tensor:
-        pass
+        return self.predict_step(batch=batch)
     
     def predict_step(self, *args: Any, **kwargs: Any) -> Any:
         batch = kwargs.get("batch", args[0])
@@ -45,11 +47,12 @@ class BaseModule(nn.Module, ABC):
         return torchscript_module
     
     def save_hyperparameters(self, **hparams):
-
+        if not hasattr(self, "hparams"):
+            self.hparams = {}
         if hparams:
             self.hparams.update(hparams)
             return
-
+ 
         frame = inspect.currentframe().f_back  # Get the previous frame (where __init__ is called)
         args, _, _, local_vars = inspect.getargvalues(frame)
 
@@ -58,7 +61,12 @@ class BaseModule(nn.Module, ABC):
         if 'kwargs' in local_vars and local_vars['kwargs']:
             self.hparams.update(**local_vars['kwargs'])  # Flatten **kwargs into hparams
             
+    
+    def log(self, name, value, on_step=False, on_epoch=False, prog_bar=False):
+        if self._trainer is None:
+            return
         
+        self._trainer.log(name, value, on_step=on_step, on_epoch=on_epoch, prog_bar=prog_bar)
                     
     # EVENTS
     def on_fit_start(self):

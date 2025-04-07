@@ -1,7 +1,11 @@
 **/project.egg-info
+*.egg-info
 **/__pycache__
 .env
 logs
 
 models/checkpoints
-deployment
+
+.code-workspace
+.venv
+.vscode

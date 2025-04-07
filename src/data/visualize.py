@@ -67,8 +67,12 @@ def visualize_regression(y_true, models_predictions, model_names=None, title="Mo
 
 def plot_history_from_study(study):
     history = study.best_trial.user_attrs["history"]
-    plt.plot(history['epoch'], history["val_loss"], label="val_loss")
-    plt.plot(history['epoch'], history["train_loss"], label="train_loss")
+    for key in history:
+        if key == "epoch":
+            continue
+        plt.plot(history['epoch'], history[key], label=key)
+    # plt.plot(history['epoch'], history["val_loss"], label="val_loss")
+    # plt.plot(history['epoch'], history["loss"], label="loss")
     plt.legend()
     plt.show()
     
@@ -110,6 +114,9 @@ def plot_samples(dir: str):
     unique_distances = [*os.listdir(normal_data_dir), *os.listdir(anomalous_data_dir)]
     unique_distances = set([get_distance_from_file_name(x) for x in unique_distances])
     
+    normal_data = random.sample(os.listdir(normal_data_dir), k=3)
+    anomalous_data = random.sample(os.listdir(anomalous_data_dir), k=3)
+    
     fig, axes = plt.subplots(2, 3, figsize=(15, 7))
 
     for ax, label in zip(axes[:, 0], ["Normal", "Anomalous"]):
@@ -121,16 +128,13 @@ def plot_samples(dir: str):
     # Add a main title for the figure
     fig.suptitle("Overview of normal and anomalous data", fontsize=16)
 
-    normal_data = random.sample(os.listdir(normal_data_dir), k=3)
-    anomalous_data = random.sample(os.listdir(anomalous_data_dir), k=3)
-
     for ax_row, data_files, data_dir in zip(axes, [normal_data, anomalous_data], [normal_data_dir, anomalous_data_dir]):
         for ax, file in zip(ax_row, data_files):
             
             df = pd.read_csv(os.path.join(data_dir, file))
             
             ax.plot(df[["flow", "pressure"]], label=["flow", "pressure"])
-            ax.legend()
+            ax.legend(loc="upper right")
             ax.set_title(f"{get_distance_from_file_name(file)} Meters")
             
             xticks = [str(int(tick)) + "s" for tick in list(ax.get_xticks())]
@@ -142,3 +146,4 @@ def plot_samples(dir: str):
     # Adjust layout
     fig.tight_layout(rect=[0, 0, 1, 0.95])
     plt.show()
+    return fig

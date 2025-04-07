@@ -1,12 +1,14 @@
 from pathlib import Path
 import os
 
-EPOCHS = 50
+EPOCHS = 200
 BATCH_SIZE = 32
 TRAIN_SIZE = 0.75
 VAL_SIZE = 0.15
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
+
+FIGURES_DIR = os.path.join(ROOT_DIR, "figures")
 
 DATA_RAW_DIR = "data/raw"
 DATA_AUGMENTED_DIR = "data/processed"

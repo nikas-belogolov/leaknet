@@ -32,12 +32,6 @@ class MILPooling(nn.Module, ABC):
             self.dropout = nn.Dropout(p=dropout)
         
         self.aggregation_func = aggregation_func
-
-        self.hparams = {
-            "d_in": d_in,
-            "dropout": dropout,
-            "apply_positional_encoding": apply_positional_encoding
-        }
         
     def aggregate(self, x: torch.Tensor, dim: int) -> torch.Tensor:
         if self.aggregation_func == "mean":
@@ -285,8 +279,6 @@ class MILConjunctivePooling(MILPooling):
             nn.Sigmoid(),
         )
         self.instance_classifier = nn.Linear(d_in, 1)
-        
-        self.hparams.update(d_attn=d_attn)
 
     def forward(self, instance_embeddings: torch.Tensor, pos: Optional[torch.Tensor] = None) -> Dict[str, torch.Tensor]:
         """
@@ -333,11 +325,10 @@ class PositionalEncoding(nn.Module):
         position = torch.arange(max_len).unsqueeze(1)
         div_term = torch.exp(torch.arange(0, d_model, 2) * (-math.log(10000.0) / d_model))
         # Batch, ts len, d_model
-        pe = torch.zeros(1, max_len, d_model)
-        pe[0, :, 0::2] = torch.sin(position * div_term) # for even embedding entries
-        pe[0, :, 1::2] = torch.cos(position * div_term) # for odd embedding entries
-        self.register_buffer("pe", pe)
-        self.pe: torch.Tensor
+        self.pe = torch.zeros(1, max_len, d_model)
+        self.pe[0, :, 0::2] = torch.sin(position * div_term) # for even embedding entries
+        self.pe[0, :, 1::2] = torch.cos(position * div_term) # for odd embedding entries
+        # self.register_buffer("pe", self.pe)
 
     def forward(self, x: torch.Tensor, x_pos: Optional[torch.Tensor] = None) -> torch.Tensor:
         """
