@@ -6,7 +6,9 @@ build-backend = "setuptools.build_meta"
 name = "leaknet"
 version = "0.1.0"
 authors = [{ name = "Nikas Belogolov", email = "belogolovnikas@gmail.com" }]
-dependencies = []
+dependencies = [
+    "torch>=2.7.0",
+]
 
 [tool.setuptools]
 package-dir = {"" = "src"}

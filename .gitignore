@@ -2,9 +2,10 @@
 *.egg-info
 **/__pycache__
 .env
-logs
+*logs
 
 models/checkpoints
+build
 
 .code-workspace
 .venv
