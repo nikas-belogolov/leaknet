@@ -16,7 +16,9 @@ class LeakNet(L.LightningModule):
         dropout,
         d_attn,
         apply_positional_encoding,
-        learning_rate
+        learning_rate,
+        test_threshold=0.9,
+        test_window_size=30
     ):
         super().__init__()
         
@@ -32,7 +34,11 @@ class LeakNet(L.LightningModule):
         
         self.regularization_weight = regularization_weight
         
-        self.save_hyperparameters()
+        self.save_hyperparameters(ignore=["test_threshold", "test_window_size"])
+        
+        self.test_window_size = test_window_size
+        self.test_window_stride = 1
+        self.test_threshold = test_threshold
         
     def forward(self, x):
         x = x.transpose(1, 2)
@@ -68,9 +74,9 @@ class LeakNet(L.LightningModule):
     def test_step(self, batch):
         x, y_true = batch
         x = x.squeeze()
-        windows = x.unfold(0, 30, 1).transpose(1, 2)
+        windows = x.unfold(0, self.test_window_size, 1).transpose(1, 2)
         y_pred = self.predict_step(windows)
-        plot_window_predictions(x, y_pred, y_true, window_size=30, stride=1, threshold=0.9)
+        plot_window_predictions(x, y_pred, y_true, window_size=self.test_window_size, stride=self.test_window_stride, threshold=self.test_threshold)
         
     @torch.jit.export
     def predict_step(self, batch):

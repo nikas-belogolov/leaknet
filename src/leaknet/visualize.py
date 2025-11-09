@@ -7,65 +7,8 @@ from .utils import get_distance_from_file_name
 from optuna.trial import Trial
 from optuna.study import Study
 
-# def visualize_classification(y_true, models_predictions, model_names=None, title="Model Comparison"):
-    
-#     for i, (y_pred, model_name) in enumerate(zip(models_predictions, model_names)):
-#         y_pred = (y_pred >= get_best_theshold(y_true, y_pred)).astype(int)
-        
-#         cm = confusion_matrix(y_true, y_pred)
-#         disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=["normal", "anomaly"])
-#         disp.plot()
-    
-#     plt.show()
-
-# def visualize_regression(y_true, models_predictions, model_names=None, title="Model Comparison"):
-#     colors = plt.cm.Pastel1(np.linspace(0, 1, len(models_predictions)))
-#     fig, axs = plt.subplots(1, 2, figsize=(10, 5))
-    
-#     # Scatter plot for each model
-#     for i, (y_pred, model_name) in enumerate(zip(models_predictions, model_names)):
-#         axs[0].scatter(
-#             y_pred,
-#             y_true,
-#             color=colors[i],
-#             label=model_name,
-#             alpha=0.7,
-#             edgecolor="k",
-#         )
-        
-#         axs[1].scatter(
-#             y_pred,
-#             y_true - y_pred,
-#             color=colors[i],
-#             label=model_name,
-#             alpha=0.7,
-#             edgecolor="k",
-#         )
-        
-#     lims = [
-#         min(min(y_true), *[min(y_pred) for y_pred in models_predictions]),
-#         max(max(y_true), *[max(y_pred) for y_pred in models_predictions]),
-#     ]
-#     axs[0].set_title("Actual vs. Predicted values")
-#     axs[0].plot(lims, lims, "--", color="gray", label="Ideal Prediction")
-#     axs[0].set_ylabel("Actual Values")
-#     axs[0].set_xlabel("Predicted Values")
-#     axs[0].legend(loc="best")
-    
-#     axs[1].set_title("Residuals vs. Predicted values")
-#     axs[1].axhline(0, color="gray", linestyle="--", label="Ideal Prediction")    
-#     axs[1].legend(loc="best")
-#     axs[1].set_ylabel("Residuals (actual - predicted)")
-#     axs[1].set_xlabel("Predicted Values")
-    
-#     fig.suptitle(title)
-#     plt.tight_layout()
-#     plt.show()
-
 def plot_history_from_trial(trial: Trial, metrics=[], study_name=""):
     
-    import matplotlib.ticker as plticker
-
     history = trial.user_attrs["history"]
     for k, v in history.items():
         if k == "epoch":
@@ -74,6 +17,7 @@ def plot_history_from_trial(trial: Trial, metrics=[], study_name=""):
             plt.plot(history['epoch'], v, label=k)
     plt.title(f"Study: {study_name}, Trial {trial.number}")
     plt.gca().xaxis.set_major_locator(plt.MultipleLocator(10))
+    plt.gca().xaxis.set_label_text("Epoch")
     plt.legend()
     plt.show()
     
@@ -93,7 +37,7 @@ def plot_window_predictions(x, y_pred, y_true, window_size, stride, threshold):
                 start,
                 end,
                 color='green',
-                alpha=0.1,
+                alpha=0.05,
                 label='leak detected' if not leak_detected else "_"
             )
             leak_detected = True

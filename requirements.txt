@@ -5,4 +5,6 @@ numpy
 tqdm
 optuna
 pandas
-tsgm
+tsaug
+torchinfo
+lightning
